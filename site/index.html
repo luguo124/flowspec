@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowSpec — 把模糊需求变成可验证、可追踪的流程规格</title>
+<meta name="description" content="FlowSpec 是一个面向软件产品需求的流程验证与追踪 Skill：区分事实/假设/缺口，输出可编辑 draw.io 图、验收标准、测试与追踪矩阵。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0b1020;
+    --bg-2:#0e1426;
+    --ink:#e8eaf2;
+    --ink-2:#a9b0c6;
+    --ink-3:#6b7390;
+    --line:rgba(138,150,200,.16);
+    --line-strong:rgba(138,150,200,.32);
+    --amber:#ffb454;
+    --amber-soft:rgba(255,180,84,.12);
+    --green:#4fe0a0;
+    --green-soft:rgba(79,224,160,.10);
+    --blue:#8ab4ff;
+    --red:#ff6b6b;
+    --grid:rgba(120,140,220,.055);
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --serif:'Noto Serif SC',serif;
+    --sans:'Noto Sans SC',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* blueprint grid backdrop */
+  .grid-bg{
+    position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:42px 42px;
+    mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 20%,transparent 75%);
+  }
+  ::selection{background:var(--amber);color:#150f05}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px clamp(20px,5vw,64px);
+    background:rgba(11,16,32,.78);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:700;letter-spacing:.5px}
+  .brand .dot{width:11px;height:11px;border-radius:3px;background:var(--amber)}
+  .brand .v{color:var(--ink-3);font-weight:400;font-size:13px}
+  .nav-links{display:flex;gap:30px;font-size:14px;color:var(--ink-2)}
+  .nav-links a{transition:color .2s}
+  .nav-links a:hover{color:var(--amber)}
+  .nav-cta{
+    font-family:var(--mono);font-size:13px;padding:9px 18px;
+    border:1px solid var(--amber);color:var(--amber);border-radius:6px;
+    transition:all .2s;
+  }
+  .nav-cta:hover{background:var(--amber);color:#150f05}
+
+  /* ---------- hero ---------- */
+  section{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,64px)}
+  .hero{
+    padding-top:150px;padding-bottom:90px;
+    position:relative;
+  }
+  .hero-inner{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .kicker{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:12.5px;color:var(--amber);
+    border:1px solid var(--line-strong);border-radius:999px;
+    padding:7px 16px;background:var(--amber-soft);letter-spacing:.4px;
+    margin-bottom:26px;
+  }
+  .kicker .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 var(--green);animation:pulse 2.2s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  h1{
+    font-family:var(--serif);font-weight:900;
+    font-size:clamp(34px,5.2vw,62px);line-height:1.14;letter-spacing:1px;
+  }
+  h1 .accent{color:var(--amber)}
+  h1 .green{color:var(--green)}
+  .hero-sub{
+    margin-top:24px;font-size:17px;color:var(--ink-2);max-width:540px;
+  }
+  .hero-ctas{display:flex;gap:16px;margin-top:36px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:14px;padding:15px 26px;border-radius:8px;
+    transition:all .2s;cursor:pointer;
+  }
+  .btn-primary{background:var(--amber);color:#150f05;font-weight:700;box-shadow:0 8px 30px -10px var(--amber)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px -12px var(--amber)}
+  .btn-ghost{border:1px solid var(--line-strong);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--amber);color:var(--amber)}
+  .hero-meta{display:flex;gap:26px;margin-top:40px;font-family:var(--mono);font-size:13px;color:var(--ink-3)}
+  .hero-meta b{color:var(--ink);font-weight:500;display:block;font-size:16px}
+  .hero-meta span{color:var(--ink-3)}
+
+  /* hero terminal / blueprint */
+  .blueprint{
+    position:relative;border:1px solid var(--line-strong);border-radius:14px;
+    background:linear-gradient(160deg,var(--bg-2),#0a0e1c);
+    overflow:hidden;box-shadow:0 40px 80px -40px rgba(0,0,0,.8);
+  }
+  .blueprint::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:24px 24px;opacity:.5;
+  }
+  .b-head{
+    display:flex;align-items:center;gap:8px;padding:14px 18px;
+    border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--ink-3);
+  }
+  .b-head i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .b-head i:nth-child(1){background:#ff5f57}.b-head i:nth-child(2){background:#febc2e}.b-head i:nth-child(3){background:#28c840}
+  .b-head b{font-weight:500;margin-left:10px;color:var(--ink-2)}
+  .b-body{padding:22px;position:relative;z-index:1;font-size:13.5px;line-height:2}
+  .node-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:8px 0}
+  .node{
+    padding:10px 14px;border-radius:8px;border:1px solid var(--line-strong);
+    background:rgba(255,255,255,.02);
+  }
+  .node .t{font-weight:500;font-size:13px}
+  .node .s{font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-top:2px}
+  .node.hi{border-color:rgba(255,180,84,.5);background:var(--amber-soft)}
+  .node.ok{border-color:rgba(79,224,160,.45);background:var(--green-soft)}
+  .arrow{color:var(--ink-3);font-size:16px;font-family:var(--mono)}
+  .tags{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px}
+  .tag{border:1px solid var(--line-strong);padding:5px 10px;border-radius:5px;color:var(--ink-2)}
+  .tag.f{color:var(--green);border-color:rgba(79,224,160,.4)}
+  .tag.h{color:var(--amber);border-color:rgba(255,180,84,.4)}
+  .tag.g{color:var(--red);border-color:rgba(255,107,107,.4)}
+
+  /* ---------- problem section ---------- */
+  .sec{padding-top:90px;padding-bottom:40px}
+  .sec-head{max-width:720px;margin-bottom:50px}
+  .eyebrow{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:2px;margin-bottom:12px}
+  h2{font-family:var(--serif);font-weight:900;font-size:clamp(26px,3.6vw,40px);line-height:1.25}
+  .problem{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  }
+  .card{
+    border:1px solid var(--line);border-radius:14px;padding:30px;background:rgba(255,255,255,.015);
+    transition:all .25s;position:relative;overflow:hidden;
+  }
+  .card:hover{border-color:var(--line-strong);transform:translateY(-4px)}
+  .card .num{font-family:var(--mono);font-size:13px;color:var(--ink-3)}
+  .card h3{font-family:var(--serif);font-weight:700;font-size:20px;margin:14px 0 10px}
+  .card p{color:var(--ink-2);font-size:14.5px}
+  .card .tagline{color:var(--amber);font-size:14px;margin-top:18px;font-weight:500}
+
+  /* ---------- core loop ---------- */
+  .loop-wrap{
+    border:1px solid var(--line-strong);border-radius:18px;padding:36px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);
+  }
+  .loop{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center}
+  .step{
+    flex:1;min-width:150px;padding:20px 14px;text-align:center;position:relative;
+  }
+  .step .n{
+    width:46px;height:46px;margin:0 auto 14px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:17px;border:1px solid var(--line-strong);background:var(--bg-2);color:var(--ink);
+  }
+  .step .n.hot{background:var(--amber);color:#150f05;border-color:var(--amber);box-shadow:0 0 30px -4px var(--amber)}
+  .step .n.vrf{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+  .step h4{font-size:14.5px;font-weight:600;margin-bottom:6px}
+  .step p{font-size:12.5px;color:var(--ink-3)}
+  .step .conn{position:absolute;top:41px;right:-9px;color:var(--amber);font-family:var(--mono);z-index:2;font-size:14px}
+
+  /* ---------- differentiators ---------- */
+  .diff{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .diff-item{
+    border:1px solid var(--line);border-radius:14px;padding:32px;background:rgba(255,255,255,.015);
+    position:relative;
+  }
+  .diff-item .ico{font-size:26px;margin-bottom:16px}
+  .diff-item h3{font-family:var(--serif);font-weight:700;font-size:20px;margin-bottom:12px}
+  .diff-item p{color:var(--ink-2);font-size:14px;margin-bottom:16px}
+  .diff-item ul{list-style:none}
+  .diff-item li{font-size:13px;color:var(--ink-3);padding:7px 0 7px 20px;position:relative;border-top:1px dashed var(--line)}
+  .diff-item li::before{content:"—";position:absolute;left:0;color:var(--amber)}
+  .vs-note{margin-top:36px;border-left:3px solid var(--amber);padding:16px 22px;background:var(--amber-soft);border-radius:0 10px 10px 0;font-size:14.5px;color:var(--ink-2)}
+  .vs-note b{color:var(--amber)}
+
+  /* ---------- output ---------- */
+  .out-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+  .out-item{border:1px solid var(--line);border-radius:14px;padding:28px}
+  .out-item .cap{font-family:var(--mono);font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+  .out-item .cap i{width:9px;height:9px;border-radius:2px;background:var(--amber);display:inline-block}
+  .out-item h4{font-size:18px;font-weight:600;margin:12px 0 8px}
+  .out-item p{font-size:14px;color:var(--ink-2)}
+
+  /* ---------- terminal ---------- */
+  .term{border:1px solid var(--line-strong);border-radius:14px;background:#080c18;overflow:hidden;font-family:var(--mono)}
+  .term-head{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+  .term-head i{width:10px;height:10px;border-radius:50%;background:#2a3352;display:inline-block}
+  .term-body{padding:20px 24px;font-size:13px;line-height:2.1;overflow-x:auto}
+  .term-body .cm{color:var(--blue)}
+  .term-body .ok{color:var(--green)}
+  .term-body .w{color:var(--amber)}
+  .term-body .dim{color:var(--ink-3)}
+  .term-body .doll{color:var(--green)}
+
+  /* ---------- users ---------- */
+  .users{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .user{border:1px solid var(--line);border-radius:14px;padding:30px}
+  .user .role{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:1px}
+  .user h4{font-family:var(--serif);font-weight:700;font-size:20px;margin:12px 0 10px}
+  .user p{font-size:14px;color:var(--ink-2)}
+
+  /* ---------- platforms ---------- */
+  .plats{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:13px}
+  .plat{border:1px solid var(--line-strong);padding:12px 22px;border-radius:99px;color:var(--ink-2)}
+  .plat:hover{color:var(--amber);border-color:var(--amber)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);margin-top:120px;padding:40px clamp(20px,5vw,64px) 60px}
+  .footer-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+  .footer-inner span{font-size:13px;color:var(--ink-3);font-family:var(--mono)}
+  .certs{display:flex;gap:14px}
+  .certs span{font-size:12px;color:var(--ink-3)}
+
+  /* cursor / misc */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+  .sec-divider{border:none;border-top:1px solid var(--line);max-width:1200px;margin:70px auto}
+
+  @media(max-width:960px){
+    .hero-inner{grid-template-columns:1fr;gap:40px}
+    .problem,.diff,.users{grid-template-columns:1fr 1fr}
+    .out-grid{grid-template-columns:1fr}
+    .nav-links{display:none}
+  }
+  @media(max-width:620px){
+    .problem,.diff,.users{grid-template-columns:1fr}
+    .loop{flex-direction:column}
+    .step .conn{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="brand"><span class="dot"></span>FlowSpec<span class="v">v0.5.0</span></div>
+  <div class="nav-links">
+    <a href="#why">痛点</a>
+    <a href="#loop">闭环</a>
+    <a href="#diff">差异</a>
+    <a href="#output">产物</a>
+    <a href="#try">动手</a>
+  </div>
+  <a class="nav-cta" href="#try">开始使用</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div>
+      <span class="kicker"><span class="pulse"></span>面向软件需求的流程验证与追踪 Skill</span>
+      <h1>把<b>模糊需求</b><br />变成<span class="green">可验证</span>、<span class="accent">可追踪</span>的流程规格</h1>
+      <p class="hero-sub">FlowSpec 把流程图当作需求验证与追踪工具，而不是把原文逐句换成节点。它区分事实与假设、检查异常路径、产出可编辑 draw.io 图，并让验收、测试与需求一一对应。</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#try">查看核心闭环 →</a>
+        <a class="btn btn-ghost" href="#output">输出产物</a>
+      </div>
+      <div class="hero-meta">
+        <div><b>3</b><span>分层证据</span></div>
+        <div><b>draw.io</b><span>原生可编辑</span></div>
+        <div><b>CLI</b><span>确定性校验</span></div>
+      </div>
+    </div>
+
+    <div class="blueprint">
+      <div class="b-head">
+        <i></i><i></i><i></i>
+        <b>flow.login.drawio</b>
+      </div>
+      <div class="b-body">
+        <div class="node-row">
+          <div class="node hi"><div class="t">开始 · 登录</div><div class="s">F1 · 需求源: PRD#12</div></div>
+          <div class="arrow">→</div>
+          <div class="node"><div class="t">校验凭据</div><div class="s">F2 · 3 次重试上限</div></div>
+        </div>
+        <div class="node-row">
+          <div class="node"><div class="t">H1 阈值待验证</div><div class="s">假设 · 超时 30s</div></div>
+          <div class="arrow">→</div>
+          <div class="node ok"><div class="t">通过 · 进入系统</div><div class="s">AC-01 ✓</div></div>
+        </div>
+        <div class="tags">
+          <span class="tag f">已确认事实</span>
+          <span class="tag h">待验证假设</span>
+          <span class="tag g">信息缺口</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="sec" id="why">
+  <div class="sec-head reveal">
+    <div class="eyebrow">PROBLEM / 痛点</div>
+    <h2>一份流程图，能回答这些吗？</h2>
+  </div>
+  <div class="problem">
+    <div class="card reveal">
+      <div class="num">/ 01</div>
+      <h3>凡是说不清的，都被悄悄补全了</h3>
+      <p>大多数生成工具会把没写明的规则圆滑地补上，让图看起来「完整」，却丢失了业务真相。阈值、超时、权限、失败路径——没人知道它们来自哪里。</p>
+      <div class="tagline">→ 缺少证据分层</div>
+    </div>
+    <div class="card reveal">
+      <div class="num">/ 02</div>
+      <h3>图很漂亮，但没法校验</h3>
+      <p>不可达节点、无终点路径、无退出条件的循环、决策分支不完备……这些结构问题靠肉眼很难发现，等到集成时才爆雷。</p>
+      <div class="tagline">→ 缺少确定性的结构校验</div>
+    </div>
+    <div class="card reveal">
+      <div class="num">/ 03</div>
+      <h3>需求一变，牵一发动全身</h3>
+      <p>验收标准、测试场景、流程节点散落在不同文档里。改一处需求，没人清楚哪些验收、哪些测试、哪些分支会受影响。</p>
+      <div class="tagline">→ 缺少追踪矩阵</div>
+    </div>
+  </div>
+</section>
+
+<hr class="sec-divider" />
+
+<!-- CORE LOOP -->
+<section class="sec" id="loop">
+  <div class="sec-head reveal">
+    <div class="eyebrow">THE LOOP / 核心闭环</div>
+    <h2>从一句模糊需求，到可评审的规格</h2>
+  </div>
+  <div class="loop-wrap reveal">
+    <div class="loop">
+      <div class="step"><div class="n">1</div><h4>识别证据</h4><p>事实 / 假设 / 缺口 分层</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n">2</div><h4>建立模型</h4><p>流程或状态流转</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n hot">3</div><h4>规范化 JSON</h4><p>稳定 ID + 追踪关系</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n">4</div><h4>结构校验</h4><p>脚本检查不变量</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n">5</div><h4>原生 draw.io</h4><p>可编辑图形</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n vrf">6</div><h4>验收 + 测试</h4><p>Given/When/Then</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n">7</div><h4>追踪矩阵</h4><p>需求 ↔ 节点 ↔ 测试</p><span class="conn">▸</span></div>
+      <div class="step"><div class="n">8</div><h4>变更影响</h4><p>稳定 ID 传播</p></div>
+    </div>
+  </div>
+</section>
+
+<hr class="sec-divider" />
+
+<!-- DIFFERENTIATION -->
+<section class="sec" id="diff">
+  <div class="sec-head reveal">
+    <div class="eyebrow">WHY FLOWSPEC / 核心差异</div>
+    <h2>它不是画图工具，是需求的验算器</h2>
+  </div>
+  <div class="diff">
+    <div class="diff-item reveal">
+      <div class="ico">🔬</div>
+      <h3>证据第一位</h3>
+      <p>把「已确认事实、待验证假设、信息缺口」设为一等数据，阻断模型凭常识发明规则。</p>
+      <ul>
+        <li>不反问已能从材料核实的事实</li>
+        <li>阈值/权限/超时必须有来源</li>
+        <li>状态诚实：draft → review_ready → verified</li>
+      </ul>
+    </div>
+    <div class="diff-item reveal">
+      <div class="ico">📐</div>
+      <h3>可校验的中间模型</h3>
+      <p>用规范化 JSON 做确定性中间层，脚本验证结构不变量，而非依赖文本直觉。</p>
+      <ul>
+        <li>显式开始 / 明确终点</li>
+        <li>不可达节点、无终点路径</li>
+        <li>循环退出条件、重试上限、外部写失败</li>
+      </ul>
+    </div>
+    <div class="diff-item reveal">
+      <div class="ico">🧭</div>
+      <h3>稳定 ID 追踪</h3>
+      <p>需求来源 → 节点/边 → 验收 → 测试互相定位，变更自动生成影响报告。</p>
+      <ul>
+        <li>一项需求可控全部后续影响面</li>
+        <li>元数据保留在 draw.io 中继续编辑</li>
+        <li>验收标准可执行、可测试</li>
+      </ul>
+    </div>
+  </div>
+  <div class="vs-note reveal">
+    <b>对比说明：</b>draw.io 官方 Skill、drawio-skill 等负责「画出可编辑的图」——它们专注于绘制质量与布局。FlowSpec 补上的是它们都不做的一层：<b>需求的证据分层、结构校验与验收/测试追踪</b>。输出侧的 draw.io 只是这条验证闭环的末端产物。
+  </div>
+</section>
+
+<hr class="sec-divider" />
+
+<!-- OUTPUT -->
+<section class="sec" id="output">
+  <div class="sec-head reveal">
+    <div class="eyebrow">OUTPUTS / 每一次交付</div>
+    <h2>一套可直接评审的规格包</h2>
+  </div>
+  <div class="out-grid">
+    <div class="out-item reveal"><div class="cap"><i></i>01 · 证据清单</div><h4>事实 · 假设 · 缺口</h4><p>哪些已被证实、哪些只是假设、哪些必须追问，一条条写明来源、风险与验证方式。</p></div>
+    <div class="out-item reveal"><div class="cap"><i></i>02 · 可编辑图形</div><h4>原生 .drawio 流程图 / 状态图</h4><p>图文件是未压缩的原生 XML，节点、边、泳道与追踪元数据可在 draw.io 中继续编辑。</p></div>
+    <div class="out-item reveal"><div class="cap"><i></i>03 · 逻辑审计</div><h4>异常路径与状态冲突</h4><p>严重度、问题、证据、影响、建议逐条列出，让边界不再是隐性假设。</p></div>
+    <div class="out-item reveal"><div class="cap"><i></i>04 · 验收标准</div><h4>Given / When / Then</h4><p>稳定 ID、关联节点，含「不得发生」的副作用与可观测的验证方式。</p></div>
+    <div class="out-item reveal"><div class="cap"><i></i>05 · 测试场景</div><h4>正常 · 边界 · 错误 · 状态 · 恢复</h4><p>覆盖完整路径的测试，附带前置、步骤、预期与结束状态。</p></div>
+    <div class="out-item reveal"><div class="cap"><i></i>06 · 追踪矩阵</div><h4>变更影响报告</h4><p>需求来源 ↔ 节点/边 ↔ 验收 ↔ 测试 一一对应；有基线时自动产出影响分析。</p></div>
+  </div>
+</section>
+
+<hr class="sec-divider" />
+
+<!-- CLI -->
+<section class="sec" id="try">
+  <div class="sec-head reveal">
+    <div class="eyebrow">GET STARTED / 机器可校验</div>
+    <h2>一个 CLI，把规格变成可验证的产物</h2>
+  </div>
+  <div class="term reveal">
+    <div class="term-head"><i></i><i></i><i></i>&nbsp;flowspec · cli</div>
+    <div class="term-body">
+      <div><span class="doll">$</span> python3 flowspec.py validate spec.json</div>
+      <div class="ok">✔ 结构校验通过 · 1 个显式开始 · 2 个终点 · 引用完整</div>
+      <div><span class="doll">$</span> python3 flowspec.py validate spec.json --strict</div>
+      <div class="w">⚠ 警告：H1 假设「超时 30s」尚无证据，未达 review_ready</div>
+      <div><span class="doll">$</span> python3 flowspec.py render spec.json --output flow.drawio</div>
+      <div class="ok">✔ 已生成 flow.drawio · 原生 XML · 可在 draw.io 继续编辑</div>
+      <div><span class="doll">$</span> python3 flowspec.py diff before.json after.json --format markdown --output impact.md</div>
+      <div class="ok">✔ 变更影响 · 影响 3 个节点 / 2 条验收 / 4 个测试</div>
+      <div class="dim"><span class="doll">$</span> # 校验只证明结构，不证明业务真实 —— 真实行为仍需环境与真机验证</div>
+    </div>
+  </div>
+  <div class="hero-ctas" style="margin-top:34px">
+    <a class="btn btn-primary" href="#platforms">支持的平台 ↓</a>
+  </div>
+</section>
+
+<hr class="sec-divider" />
+
+<!-- USERS -->
+<section class="sec" id="users">
+  <div class="sec-head reveal">
+    <div class="eyebrow">FOR TEAMS / 谁在用</div>
+    <h2>需求澄清与协作的公共语言</h2>
+  </div>
+  <div class="users">
+    <div class="user reveal"><div class="role">PRODUCT</div><h4>产品经理</h4><p>把模糊 PRD 与会议纪要变成边界清晰、证据分层的流程规格，需求澄清更快、更少歧义。</p></div>
+    <div class="user reveal"><div class="role">ANALYSIS</div><h4>业务分析师</h4><p>产出结构可校验的流程与状态模型，异常路径与信息缺口一目了然。</p></div>
+    <div class="user reveal"><div class="role">ENGINEERING</div><h4>研发与测试</h4><p>拿到与验收、测试、需求互相对齐的可编辑图，变更影响评估不再靠拍脑袋。</p></div>
+  </div>
+</section>
+
+<!-- PLATFORMS -->
+<section class="sec" id="platforms">
+  <div class="sec-head reveal">
+    <div class="eyebrow">AVAILABLE ON</div>
+    <h2>跨平台可移植</h2>
+  </div>
+  <div class="plats reveal">
+    <span class="plat">OpenAI</span>
+    <span class="plat">Claude</span>
+    <span class="plat">Generic</span>
+    <span class="plat">Agent-Skills-Compatible</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <span>FlowSpec · 面向软件产品需求的流程验证与追踪 Skill</span>
+    <div class="certs">
+      <span>v0.5.0</span>
+      <span>maturity: production</span>
+      <span>© 2026 Li</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // reveal on scroll
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  // hero stagger
+  document.querySelectorAll('.hero-inner > *').forEach((el,i)=>{el.style.opacity='0';el.style.transform='translateY(24px)';el.style.transition=`opacity .8s ${i*140}ms cubic-bezier(.16,1,.3,1), transform .8s ${i*140}ms cubic-bezier(.16,1,.3,1)`});
+  window.addEventListener('load',()=>{document.querySelectorAll('.hero-inner > *').forEach(el=>{el.style.opacity='1';el.style.transform='none'})});
+</script>
+</body>
+</html>
