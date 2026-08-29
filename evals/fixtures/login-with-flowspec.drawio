@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="FlowSpec" compressed="false" pages="1">
+  <diagram id="flowspec-page-1" name="连续登录失败后的安全验证（结构示例）">
+    <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1710" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="lane-ACT-USER" value="用户" style="swimlane;html=1;rounded=0;collapsible=0;startSize=30;horizontal=1;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#CBD5E1;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="490" height="1630" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-ACT-AUTH" value="认证系统" style="swimlane;html=1;rounded=0;collapsible=0;startSize=30;horizontal=1;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#CBD5E1;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="40" width="490" height="1630" as="geometry" />
+        </mxCell>
+        <mxCell id="lane-ACT-VERIFY" value="安全验证服务" style="swimlane;html=1;rounded=0;collapsible=0;startSize=30;horizontal=1;fillColor=#F8FAFC;swimlaneFillColor=#FFFFFF;strokeColor=#CBD5E1;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="40" width="280" height="1630" as="geometry" />
+        </mxCell>
+        <UserObject id="node-N-START" label="&lt;div&gt;开始：用户尝试登录&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-START&lt;/font&gt;&lt;/div&gt;" tooltip="N-START&#10;责任角色: ACT-USER&#10;来源: SRC-001" tags="start" flowspecId="N-START" flowspecType="start" actorId="ACT-USER" sourceIds="SRC-001">
+          <mxCell style="ellipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=1.5;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="145" y="50" width="200" height="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-SUBMIT" label="&lt;div&gt;提交账号与密码&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-SUBMIT&lt;/font&gt;&lt;/div&gt;" tooltip="N-SUBMIT&#10;责任角色: ACT-USER&#10;来源: SRC-001&#10;验收: AC-001" tags="action" flowspecId="N-SUBMIT" flowspecType="action" actorId="ACT-USER" sourceIds="SRC-001" acceptanceIds="AC-001">
+          <mxCell style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#F5F5F5;strokeColor=#666666;strokeWidth=1.5;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="140" y="220" width="210" height="80" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-CHECK" label="&lt;div&gt;凭据是否有效？&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-CHECK&lt;/font&gt;&lt;/div&gt;" tooltip="N-CHECK&#10;责任角色: ACT-AUTH&#10;来源: SRC-001&#10;验收: AC-001, AC-002" tags="decision" flowspecId="N-CHECK" flowspecType="decision" actorId="ACT-AUTH" sourceIds="SRC-001" acceptanceIds="AC-001,AC-002">
+          <mxCell style="rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D6B656;strokeWidth=1.5;" vertex="1" parent="lane-ACT-AUTH">
+            <mxGeometry x="140" y="390" width="210" height="110" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-COUNT" label="&lt;div&gt;记录一次登录失败&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-COUNT&lt;/font&gt;&lt;/div&gt;" tooltip="N-COUNT&#10;责任角色: ACT-AUTH&#10;来源: SRC-001&#10;验收: AC-002" tags="action" flowspecId="N-COUNT" flowspecType="action" actorId="ACT-AUTH" sourceIds="SRC-001" acceptanceIds="AC-002">
+          <mxCell style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#F5F5F5;strokeColor=#666666;strokeWidth=1.5;" vertex="1" parent="lane-ACT-AUTH">
+            <mxGeometry x="25" y="560" width="210" height="80" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-THRESHOLD" label="&lt;div&gt;是否达到安全验证阈值？&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-THRESHOLD&lt;/font&gt;&lt;/div&gt;" tooltip="N-THRESHOLD&#10;责任角色: ACT-AUTH&#10;来源: SRC-001&#10;假设: H-001&#10;验收: AC-002" tags="decision unverified" flowspecId="N-THRESHOLD" flowspecType="decision" actorId="ACT-AUTH" sourceIds="SRC-001" assumptionIds="H-001" acceptanceIds="AC-002">
+          <mxCell style="rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D79B00;strokeWidth=1.5;dashed=1;dashPattern=8 4;" vertex="1" parent="lane-ACT-AUTH">
+            <mxGeometry x="140" y="730" width="210" height="110" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-CHALLENGE" label="&lt;div&gt;发起安全验证&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-CHALLENGE&lt;/font&gt;&lt;/div&gt;" tooltip="N-CHALLENGE&#10;责任角色: ACT-VERIFY&#10;来源: SRC-001&#10;假设: H-003&#10;验收: AC-003" tags="external unverified" flowspecId="N-CHALLENGE" flowspecType="external" actorId="ACT-VERIFY" sourceIds="SRC-001" assumptionIds="H-003" acceptanceIds="AC-003">
+          <mxCell style="shape=process;backgroundOutline=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D79B00;strokeWidth=1.5;dashed=1;dashPattern=8 4;" vertex="1" parent="lane-ACT-VERIFY">
+            <mxGeometry x="35" y="900" width="210" height="80" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-VERIFY" label="&lt;div&gt;安全验证是否成功？&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-VERIFY&lt;/font&gt;&lt;/div&gt;" tooltip="N-VERIFY&#10;责任角色: ACT-AUTH&#10;来源: SRC-001&#10;验收: AC-003" tags="decision" flowspecId="N-VERIFY" flowspecType="decision" actorId="ACT-AUTH" sourceIds="SRC-001" acceptanceIds="AC-003">
+          <mxCell style="rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D6B656;strokeWidth=1.5;" vertex="1" parent="lane-ACT-AUTH">
+            <mxGeometry x="140" y="1070" width="210" height="110" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-RETRY" label="&lt;div&gt;是否仍允许重试？&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-RETRY&lt;/font&gt;&lt;/div&gt;" tooltip="N-RETRY&#10;责任角色: ACT-AUTH&#10;假设: H-003&#10;验收: AC-003" tags="decision unverified" flowspecId="N-RETRY" flowspecType="decision" actorId="ACT-AUTH" assumptionIds="H-003" acceptanceIds="AC-003">
+          <mxCell style="rhombus;perimeter=rhombusPerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D79B00;strokeWidth=1.5;dashed=1;dashPattern=8 4;" vertex="1" parent="lane-ACT-AUTH">
+            <mxGeometry x="140" y="1240" width="210" height="110" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-SESSION" label="&lt;div&gt;创建登录会话并清零失败计数&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-SESSION&lt;/font&gt;&lt;/div&gt;" tooltip="N-SESSION&#10;责任角色: ACT-AUTH&#10;来源: SRC-001&#10;事实: F-002&#10;假设: H-002&#10;验收: AC-001" tags="action unverified" flowspecId="N-SESSION" flowspecType="action" actorId="ACT-AUTH" sourceIds="SRC-001" factIds="F-002" assumptionIds="H-002" acceptanceIds="AC-001">
+          <mxCell style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D79B00;strokeWidth=1.5;dashed=1;dashPattern=8 4;" vertex="1" parent="lane-ACT-AUTH">
+            <mxGeometry x="255" y="560" width="210" height="80" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-END-OK" label="&lt;div&gt;END：登录成功&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-END-OK&lt;/font&gt;&lt;/div&gt;" tooltip="N-END-OK&#10;责任角色: ACT-USER" tags="end" flowspecId="N-END-OK" flowspecType="end" actorId="ACT-USER">
+          <mxCell style="ellipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=1.5;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="145" y="730" width="200" height="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-END-FAIL" label="&lt;div&gt;END：登录失败，可再次尝试&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-END-FAIL&lt;/font&gt;&lt;/div&gt;" tooltip="N-END-FAIL&#10;责任角色: ACT-USER" tags="end" flowspecId="N-END-FAIL" flowspecType="end" actorId="ACT-USER">
+          <mxCell style="ellipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=1.5;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="145" y="900" width="200" height="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-END-LOCK" label="&lt;div&gt;END：验证失败，进入锁定或恢复流程&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-END-LOCK&lt;/font&gt;&lt;/div&gt;" tooltip="N-END-LOCK&#10;责任角色: ACT-USER&#10;假设: H-003" tags="end unverified" flowspecId="N-END-LOCK" flowspecType="end" actorId="ACT-USER" assumptionIds="H-003">
+          <mxCell style="ellipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#FFF2CC;strokeColor=#D79B00;strokeWidth=1.5;dashed=1;dashPattern=8 4;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="145" y="1410" width="200" height="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-END-TIMEOUT" label="&lt;div&gt;END：安全验证超时&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-END-TIMEOUT&lt;/font&gt;&lt;/div&gt;" tooltip="N-END-TIMEOUT&#10;责任角色: ACT-USER" tags="end" flowspecId="N-END-TIMEOUT" flowspecType="end" actorId="ACT-USER">
+          <mxCell style="ellipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=1.5;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="30" y="1070" width="200" height="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="node-N-END-DEPENDENCY" label="&lt;div&gt;END：验证服务不可用&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;N-END-DEPENDENCY&lt;/font&gt;&lt;/div&gt;" tooltip="N-END-DEPENDENCY&#10;责任角色: ACT-USER" tags="end" flowspecId="N-END-DEPENDENCY" flowspecType="end" actorId="ACT-USER">
+          <mxCell style="ellipse;perimeter=ellipsePerimeter;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;spacing=8;fillColor=#D5E8D4;strokeColor=#82B366;strokeWidth=1.5;" vertex="1" parent="lane-ACT-USER">
+            <mxGeometry x="260" y="1070" width="200" height="70" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-001" label="&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-001&lt;/font&gt;&lt;/div&gt;" tooltip="E-001&#10;来源: SRC-001" tags="edge normal" flowspecId="E-001" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-START" target="node-N-SUBMIT">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-002" label="&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-002&lt;/font&gt;&lt;/div&gt;" tooltip="E-002&#10;来源: SRC-001" tags="edge normal" flowspecId="E-002" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-SUBMIT" target="node-N-CHECK">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-003" label="&lt;div&gt;是&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-003&lt;/font&gt;&lt;/div&gt;" tooltip="E-003&#10;来源: SRC-001" tags="edge normal" flowspecId="E-003" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-CHECK" target="node-N-SESSION">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="-14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-004" label="&lt;div&gt;error: 否&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-004&lt;/font&gt;&lt;/div&gt;" tooltip="E-004&#10;来源: SRC-001" tags="edge error" flowspecId="E-004" flowspecType="edge:error" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#B85450;strokeWidth=1.5;" edge="1" parent="1" source="node-N-CHECK" target="node-N-COUNT">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-005" label="&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-005&lt;/font&gt;&lt;/div&gt;" tooltip="E-005&#10;来源: SRC-001" tags="edge normal" flowspecId="E-005" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-COUNT" target="node-N-THRESHOLD">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-006" label="&lt;div&gt;是&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-006&lt;/font&gt;&lt;/div&gt;" tooltip="E-006&#10;来源: SRC-001&#10;假设: H-001" tags="edge normal" flowspecId="E-006" flowspecType="edge:normal" sourceIds="SRC-001" assumptionIds="H-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-THRESHOLD" target="node-N-CHALLENGE">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="-14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-007" label="&lt;div&gt;否&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-007&lt;/font&gt;&lt;/div&gt;" tooltip="E-007&#10;来源: SRC-001&#10;假设: H-001" tags="edge normal" flowspecId="E-007" flowspecType="edge:normal" sourceIds="SRC-001" assumptionIds="H-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-THRESHOLD" target="node-N-END-FAIL">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-008" label="&lt;div&gt;挑战已送达&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-008&lt;/font&gt;&lt;/div&gt;" tooltip="E-008&#10;来源: SRC-001" tags="edge normal" flowspecId="E-008" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-CHALLENGE" target="node-N-VERIFY">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="-28" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-009" label="&lt;div&gt;timeout: 达到待确认的超时时间&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-009&lt;/font&gt;&lt;/div&gt;" tooltip="E-009&#10;来源: SRC-001" tags="edge timeout" flowspecId="E-009" flowspecType="edge:timeout" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#D79B00;strokeWidth=1.5;dashed=1;dashPattern=8 4;" edge="1" parent="1" source="node-N-CHALLENGE" target="node-N-END-TIMEOUT">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-010" label="&lt;div&gt;error: 服务调用失败&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-010&lt;/font&gt;&lt;/div&gt;" tooltip="E-010&#10;来源: SRC-001" tags="edge error" flowspecId="E-010" flowspecType="edge:error" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#B85450;strokeWidth=1.5;" edge="1" parent="1" source="node-N-CHALLENGE" target="node-N-END-DEPENDENCY">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="28" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-011" label="&lt;div&gt;成功&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-011&lt;/font&gt;&lt;/div&gt;" tooltip="E-011&#10;来源: SRC-001" tags="edge normal" flowspecId="E-011" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-VERIFY" target="node-N-SESSION">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="-14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-012" label="&lt;div&gt;error: 失败&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-012&lt;/font&gt;&lt;/div&gt;" tooltip="E-012&#10;来源: SRC-001" tags="edge error" flowspecId="E-012" flowspecType="edge:error" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#B85450;strokeWidth=1.5;" edge="1" parent="1" source="node-N-VERIFY" target="node-N-RETRY">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-013" label="&lt;div&gt;retry: 是&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-013&lt;/font&gt;&lt;/div&gt;" tooltip="E-013&#10;来源: SRC-001&#10;假设: H-003" tags="edge retry" flowspecId="E-013" flowspecType="edge:retry" sourceIds="SRC-001" assumptionIds="H-003">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#9673A6;strokeWidth=1.5;dashed=1;dashPattern=3 3;" edge="1" parent="1" source="node-N-RETRY" target="node-N-CHALLENGE">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="-14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-014" label="&lt;div&gt;否&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-014&lt;/font&gt;&lt;/div&gt;" tooltip="E-014&#10;来源: SRC-001&#10;假设: H-003" tags="edge normal" flowspecId="E-014" flowspecType="edge:normal" sourceIds="SRC-001" assumptionIds="H-003">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-RETRY" target="node-N-END-LOCK">
+            <mxGeometry relative="1" as="geometry">
+              <mxPoint x="0" y="14" as="offset" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject id="edge-E-015" label="&lt;div&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#6B7280&quot; style=&quot;font-size:10px&quot;&gt;E-015&lt;/font&gt;&lt;/div&gt;" tooltip="E-015&#10;来源: SRC-001" tags="edge normal" flowspecId="E-015" flowspecType="edge:normal" sourceIds="SRC-001">
+          <mxCell style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#4D4D4D;strokeWidth=1.5;" edge="1" parent="1" source="node-N-SESSION" target="node-N-END-OK">
+            <mxGeometry relative="1" as="geometry" />
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,203 @@
+{
+  "version": "1.0",
+  "title": "连续登录失败后的安全验证（结构示例）",
+  "status": "draft",
+  "diagram_type": "flowchart",
+  "direction": "TD",
+  "scope": {
+    "goal": "展示如何把一条模糊登录需求转成可追踪、可校验的流程规格",
+    "in_scope": ["凭据校验", "失败计数", "安全验证", "明确终点"],
+    "out_of_scope": ["具体验证码供应商", "真实阈值", "账号恢复流程"]
+  },
+  "actors": [
+    {"id": "ACT-USER", "name": "用户"},
+    {"id": "ACT-AUTH", "name": "认证系统"},
+    {"id": "ACT-VERIFY", "name": "安全验证服务"}
+  ],
+  "sources": [
+    {
+      "id": "SRC-001",
+      "kind": "user_requirement",
+      "ref": "用户连续登录失败时需要进行安全验证，验证成功后可以继续登录。"
+    }
+  ],
+  "facts": [
+    {
+      "id": "F-001",
+      "statement": "连续登录失败后需要安全验证",
+      "source_ids": ["SRC-001"]
+    },
+    {
+      "id": "F-002",
+      "statement": "安全验证成功后允许继续登录",
+      "source_ids": ["SRC-001"]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "H-001",
+      "statement": "系统存在可配置的连续失败阈值",
+      "risk": "阈值和统计维度不同会改变触发路径",
+      "verification": "由产品和安全负责人确认阈值、时间窗及账号/设备维度",
+      "source_ids": ["SRC-001"],
+      "status": "unverified"
+    },
+    {
+      "id": "H-002",
+      "statement": "登录成功后失败计数清零",
+      "risk": "若不清零，后续登录可能被错误触发安全验证",
+      "verification": "核对认证服务状态规则并补充接口测试",
+      "source_ids": ["SRC-001"],
+      "status": "unverified"
+    },
+    {
+      "id": "H-003",
+      "statement": "安全验证失败存在有限次重试",
+      "risk": "无限重试会削弱安全控制",
+      "verification": "由安全负责人确认重试上限与锁定恢复规则",
+      "source_ids": ["SRC-001"],
+      "status": "unverified"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "question": "连续失败多少次、在多长时间窗内触发安全验证？",
+      "blocking": true,
+      "owner": "产品/安全",
+      "source_ids": ["SRC-001"]
+    },
+    {
+      "id": "Q-002",
+      "question": "失败次数按账号、设备、IP 还是组合维度统计？",
+      "blocking": true,
+      "owner": "产品/安全",
+      "source_ids": ["SRC-001"]
+    },
+    {
+      "id": "Q-003",
+      "question": "网络中断或验证码超时后，验证状态保留多久？",
+      "blocking": false,
+      "owner": "产品/研发",
+      "source_ids": ["SRC-001"]
+    }
+  ],
+  "nodes": [
+    {"id": "N-START", "type": "start", "label": "开始：用户尝试登录", "actor_id": "ACT-USER", "source_ids": ["SRC-001"]},
+    {"id": "N-SUBMIT", "type": "action", "label": "提交账号与密码", "actor_id": "ACT-USER", "source_ids": ["SRC-001"], "inputs": ["账号", "密码"], "acceptance_ids": ["AC-001"]},
+    {"id": "N-CHECK", "type": "decision", "label": "凭据是否有效？", "actor_id": "ACT-AUTH", "source_ids": ["SRC-001"], "acceptance_ids": ["AC-001", "AC-002"]},
+    {"id": "N-COUNT", "type": "action", "label": "记录一次登录失败", "actor_id": "ACT-AUTH", "source_ids": ["SRC-001"], "observability": ["account_id", "device_id", "failure_reason", "occurred_at"], "acceptance_ids": ["AC-002"]},
+    {"id": "N-THRESHOLD", "type": "decision", "label": "是否达到安全验证阈值？", "actor_id": "ACT-AUTH", "source_ids": ["SRC-001"], "assumption_ids": ["H-001"], "acceptance_ids": ["AC-002"]},
+    {"id": "N-CHALLENGE", "type": "external", "label": "发起安全验证", "actor_id": "ACT-VERIFY", "source_ids": ["SRC-001"], "assumption_ids": ["H-003"], "acceptance_ids": ["AC-003"]},
+    {"id": "N-VERIFY", "type": "decision", "label": "安全验证是否成功？", "actor_id": "ACT-AUTH", "source_ids": ["SRC-001"], "acceptance_ids": ["AC-003"]},
+    {"id": "N-RETRY", "type": "decision", "label": "是否仍允许重试？", "actor_id": "ACT-AUTH", "assumption_ids": ["H-003"], "acceptance_ids": ["AC-003"]},
+    {"id": "N-SESSION", "type": "action", "label": "创建登录会话并清零失败计数", "actor_id": "ACT-AUTH", "source_ids": ["SRC-001"], "fact_ids": ["F-002"], "assumption_ids": ["H-002"], "outputs": ["登录会话"], "observability": ["login_result=success", "failure_count_after"], "acceptance_ids": ["AC-001"]},
+    {"id": "N-END-OK", "type": "end", "label": "END：登录成功", "actor_id": "ACT-USER"},
+    {"id": "N-END-FAIL", "type": "end", "label": "END：登录失败，可再次尝试", "actor_id": "ACT-USER"},
+    {"id": "N-END-LOCK", "type": "end", "label": "END：验证失败，进入锁定或恢复流程", "actor_id": "ACT-USER", "assumption_ids": ["H-003"]},
+    {"id": "N-END-TIMEOUT", "type": "end", "label": "END：安全验证超时", "actor_id": "ACT-USER"},
+    {"id": "N-END-DEPENDENCY", "type": "end", "label": "END：验证服务不可用", "actor_id": "ACT-USER"}
+  ],
+  "edges": [
+    {"id": "E-001", "from": "N-START", "to": "N-SUBMIT", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-002", "from": "N-SUBMIT", "to": "N-CHECK", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-003", "from": "N-CHECK", "to": "N-SESSION", "condition": "是", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-004", "from": "N-CHECK", "to": "N-COUNT", "condition": "否", "kind": "error", "source_ids": ["SRC-001"]},
+    {"id": "E-005", "from": "N-COUNT", "to": "N-THRESHOLD", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-006", "from": "N-THRESHOLD", "to": "N-CHALLENGE", "condition": "是", "kind": "normal", "source_ids": ["SRC-001"], "assumption_ids": ["H-001"]},
+    {"id": "E-007", "from": "N-THRESHOLD", "to": "N-END-FAIL", "condition": "否", "kind": "normal", "source_ids": ["SRC-001"], "assumption_ids": ["H-001"]},
+    {"id": "E-008", "from": "N-CHALLENGE", "to": "N-VERIFY", "condition": "挑战已送达", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-009", "from": "N-CHALLENGE", "to": "N-END-TIMEOUT", "condition": "达到待确认的超时时间", "kind": "timeout", "source_ids": ["SRC-001"]},
+    {"id": "E-010", "from": "N-CHALLENGE", "to": "N-END-DEPENDENCY", "condition": "服务调用失败", "kind": "error", "source_ids": ["SRC-001"]},
+    {"id": "E-011", "from": "N-VERIFY", "to": "N-SESSION", "condition": "成功", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-012", "from": "N-VERIFY", "to": "N-RETRY", "condition": "失败", "kind": "error", "source_ids": ["SRC-001"]},
+    {"id": "E-013", "from": "N-RETRY", "to": "N-CHALLENGE", "condition": "是", "kind": "retry", "limit": "待安全负责人确认", "source_ids": ["SRC-001"], "assumption_ids": ["H-003"]},
+    {"id": "E-014", "from": "N-RETRY", "to": "N-END-LOCK", "condition": "否", "kind": "normal", "source_ids": ["SRC-001"], "assumption_ids": ["H-003"]},
+    {"id": "E-015", "from": "N-SESSION", "to": "N-END-OK", "kind": "normal", "source_ids": ["SRC-001"]}
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "node_ids": ["N-SUBMIT", "N-CHECK", "N-SESSION"],
+      "edge_ids": ["E-001", "E-002", "E-003", "E-015"],
+      "given": "账号可用且用户提交有效凭据",
+      "when": "认证系统完成凭据校验",
+      "then": ["创建登录会话", "返回登录成功", "失败计数按待确认规则清零"],
+      "must_not": ["返回其他账号的会话", "在日志中记录密码明文"],
+      "verification": "接口响应、会话记录、失败计数和审计日志一致",
+      "priority": "required"
+    },
+    {
+      "id": "AC-002",
+      "node_ids": ["N-CHECK", "N-COUNT", "N-THRESHOLD"],
+      "edge_ids": ["E-004", "E-005", "E-006", "E-007"],
+      "given": "用户提交无效凭据",
+      "when": "认证系统记录失败并计算连续失败次数",
+      "then": ["未达到阈值时结束本次登录", "达到阈值时进入安全验证"],
+      "must_not": ["在阈值未达到时错误触发安全验证"],
+      "verification": "失败计数、触发结果和日志中的统计维度一致",
+      "priority": "required"
+    },
+    {
+      "id": "AC-003",
+      "node_ids": ["N-CHALLENGE", "N-VERIFY", "N-RETRY"],
+      "edge_ids": ["E-008", "E-009", "E-010", "E-011", "E-012", "E-013", "E-014"],
+      "given": "登录失败次数达到待确认阈值",
+      "when": "系统发起并处理安全验证",
+      "then": ["成功时继续创建会话", "失败、超时和服务异常进入各自明确终点", "重试受上限约束"],
+      "must_not": ["验证失败、超时或依赖异常时创建登录会话"],
+      "verification": "验证服务记录、认证状态、用户结果和关联日志一致",
+      "priority": "required"
+    }
+  ],
+  "test_scenarios": [
+    {
+      "id": "TC-001",
+      "title": "有效凭据直接登录成功",
+      "category": "happy",
+      "path": ["N-START", "N-SUBMIT", "N-CHECK", "N-SESSION", "N-END-OK"],
+      "covers": ["AC-001"],
+      "preconditions": ["账号可用"],
+      "steps": ["提交有效账号与密码"],
+      "expected": ["创建会话", "返回成功"],
+      "postconditions": ["失败计数符合待确认的清零规则"],
+      "observability": ["login_result=success"]
+    },
+    {
+      "id": "TC-002",
+      "title": "失败次数未达阈值",
+      "category": "error",
+      "path": ["N-START", "N-SUBMIT", "N-CHECK", "N-COUNT", "N-THRESHOLD", "N-END-FAIL"],
+      "covers": ["AC-002"],
+      "preconditions": ["当前失败次数低于阈值"],
+      "steps": ["提交无效密码"],
+      "expected": ["失败计数增加", "不发起安全验证"],
+      "postconditions": ["本次登录失败"],
+      "observability": ["login_result=invalid_credentials"]
+    },
+    {
+      "id": "TC-003",
+      "title": "达到阈值后验证成功",
+      "category": "state",
+      "path": ["N-START", "N-SUBMIT", "N-CHECK", "N-COUNT", "N-THRESHOLD", "N-CHALLENGE", "N-VERIFY", "N-SESSION", "N-END-OK"],
+      "covers": ["AC-001", "AC-002", "AC-003"],
+      "preconditions": ["本次失败将达到阈值", "安全验证服务可用"],
+      "steps": ["提交无效密码", "完成安全验证"],
+      "expected": ["触发验证", "验证成功后创建会话"],
+      "postconditions": ["用户已登录"],
+      "observability": ["challenge_result=success", "login_result=success"]
+    },
+    {
+      "id": "TC-004",
+      "title": "安全验证服务超时",
+      "category": "recovery",
+      "path": ["N-START", "N-SUBMIT", "N-CHECK", "N-COUNT", "N-THRESHOLD", "N-CHALLENGE", "N-END-TIMEOUT"],
+      "covers": ["AC-002", "AC-003"],
+      "preconditions": ["本次失败将达到阈值", "验证服务不在超时时间内返回"],
+      "steps": ["提交无效密码", "等待安全验证超时"],
+      "expected": ["不创建登录会话", "返回明确的超时结果"],
+      "postconditions": ["验证状态按待确认规则保留或清理"],
+      "observability": ["challenge_result=timeout"]
+    }
+  ]
+}

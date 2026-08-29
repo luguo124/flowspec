@@ -1,0 +1,183 @@
+{
+  "recommended_threshold": 0.34,
+  "description_required_concepts": [
+    "software_requirement",
+    "flow_model",
+    "validation",
+    "traceability"
+  ],
+  "positive_concepts": {
+    "software_requirement": [
+      "软件产品需求",
+      "产品需求",
+      "需求",
+      "PRD",
+      "会议纪要",
+      "复现步骤",
+      "user story",
+      "requirement"
+    ],
+    "flow_model": [
+      "流程图",
+      "产品流程",
+      "流程草图",
+      "业务流程",
+      "状态流转",
+      "状态机",
+      "Mermaid",
+      "draw.io",
+      ".drawio",
+      "flowchart",
+      "state diagram"
+    ],
+    "validation": [
+      "审计",
+      "检查",
+      "校验",
+      "异常路径",
+      "遗漏分支",
+      "不可达",
+      "状态冲突",
+      "逻辑问题",
+      "待确认",
+      "validate",
+      "audit"
+    ],
+    "traceability": [
+      "追踪",
+      "追溯",
+      "验收标准",
+      "测试场景",
+      "测试用例",
+      "acceptance criteria",
+      "traceability",
+      "test case"
+    ],
+    "change_impact": [
+      "变更影响",
+      "比较两版",
+      "需求差异",
+      "diff",
+      "impact analysis"
+    ],
+    "authoring_action": [
+      "生成",
+      "梳理",
+      "整理",
+      "重构",
+      "转成",
+      "画",
+      "创建",
+      "审阅",
+      "对比",
+      "generate",
+      "create",
+      "review",
+      "compare"
+    ]
+  },
+  "negative_patterns": [
+    "只美化",
+    "仅美化",
+    "只改配色",
+    "只调整 draw.io 配色",
+    "只改这个流程图",
+    "流程图的配色",
+    "修复 Mermaid 语法",
+    "系统架构图",
+    "时序图",
+    "ER 图",
+    "数据库关系图",
+    "通用数据可视化",
+    "完整 BRD",
+    "完整 PRD",
+    "企业 BPMN",
+    "组织流程 BPMN",
+    "only style",
+    "architecture diagram",
+    "sequence diagram",
+    "data visualization"
+  ],
+  "should_trigger": [
+    {
+      "text": "把这段退款需求梳理成流程图，并指出遗漏分支",
+      "family": "requirement_to_flow"
+    },
+    {
+      "text": "审计这个 Mermaid 登录流程，检查不可达节点和异常路径",
+      "family": "existing_flow_audit"
+    },
+    {
+      "text": "根据这份 PRD 生成状态流转和可执行的验收标准",
+      "family": "prd_to_state_and_acceptance"
+    },
+    {
+      "text": "这个订单状态机有没有非法转换？顺便补测试场景",
+      "family": "state_machine_audit"
+    },
+    {
+      "text": "比较两版 FlowSpec 的需求差异和变更影响",
+      "family": "change_impact"
+    },
+    {
+      "text": "把问题复现步骤转成业务流程，并区分事实、假设和缺口",
+      "family": "repro_to_flow"
+    },
+    {
+      "text": "Use FlowSpec to validate this requirement flow and trace branches to test cases.",
+      "family": "english_validation_trace"
+    },
+    {
+      "text": "先给我一个低风险的产品流程草图，但把待确认规则列出来",
+      "family": "quick_draft"
+    },
+    {
+      "text": "把这份退款需求生成可用 draw.io 直接打开编辑的流程图，并补齐异常路径",
+      "family": "drawio_requirement_flow"
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "text": "只美化这段 Mermaid 的颜色和节点形状",
+      "family": "mermaid_styling"
+    },
+    {
+      "text": "帮我画系统架构图，展示网关、服务和数据库",
+      "family": "architecture"
+    },
+    {
+      "text": "根据数据画一个销售趋势折线图",
+      "family": "data_visualization"
+    },
+    {
+      "text": "帮我写一份完整 PRD，包括市场背景和路线图",
+      "family": "full_prd"
+    },
+    {
+      "text": "修复 Mermaid 语法，让它能渲染",
+      "family": "syntax_only"
+    },
+    {
+      "text": "Create a sequence diagram for these API calls.",
+      "family": "sequence_diagram"
+    }
+  ],
+  "near_neighbor": [
+    {
+      "text": "给整个部门做组织流程 BPMN 咨询和制度设计",
+      "family": "enterprise_bpmn"
+    },
+    {
+      "text": "把数据库表画成 ER 图，并标主外键",
+      "family": "er_diagram"
+    },
+    {
+      "text": "只改这个流程图的配色，不分析需求",
+      "family": "visual_only"
+    },
+    {
+      "text": "审查代码实现有没有 bug，不需要流程或验收分析",
+      "family": "code_review"
+    }
+  ]
+}

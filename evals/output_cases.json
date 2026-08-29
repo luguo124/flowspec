@@ -1,0 +1,106 @@
+{
+  "cases": [
+    {
+      "id": "login-ambiguity-regression",
+      "prompt": "用户连续登录失败时需要进行安全验证，验证成功后可以继续登录。",
+      "input_files": [
+        "references/login-security.example.json"
+      ],
+      "baseline_output": "evals/fixtures/login-baseline.md",
+      "with_skill_output": "evals/fixtures/login-with-flowspec.md",
+      "assertions": {
+        "required_in_with_skill": [
+          "状态：Draft（草案）",
+          "### 已确认事实",
+          "### 待验证假设",
+          "### 阻塞问题",
+          "### 非阻塞问题",
+          "## draw.io 文件",
+          "## 逻辑审计",
+          "## 验收标准",
+          "关联边：",
+          "不得发生：",
+          "## 测试场景",
+          "完整路径：",
+          "## 追踪矩阵",
+          "| 需求来源 | 节点 | 边 | 验收标准 | 测试场景 |",
+          "连续失败多少次、在多长时间窗内触发安全验证？",
+          "结构校验与可重复渲染不等于业务规则真实"
+        ],
+        "forbidden_in_with_skill": [
+          "连续失败 3 次",
+          "连续失败三次",
+          "已验证：登录安全策略正确"
+        ],
+        "expected_missing_from_baseline": [
+          "### 待验证假设",
+          "### 阻塞问题",
+          "关联边：",
+          "## 追踪矩阵"
+        ],
+        "minimum_occurrences": {
+          "### AC-": 3,
+          "### TC-": 4
+        },
+        "required_drawio_artifacts": [
+          "evals/fixtures/login-with-flowspec.drawio"
+        ],
+        "forbidden_artifact_globs": [
+          "evals/fixtures/*.mmd",
+          "evals/fixtures/*.mermaid"
+        ]
+      },
+      "human_notes": [
+        "需要人工判断问题优先级是否符合具体安全场景。",
+        "需要真实接口、安全策略与环境证据后才能把草案升级为 verified。"
+      ]
+    },
+    {
+      "id": "refund-channel-recovery-regression",
+      "prompt": "用户可以提交退款申请，审核通过后发起退款；支付渠道异常时需要进入人工处理。",
+      "input_files": [
+        "references/refund-processing.example.json"
+      ],
+      "baseline_output": "evals/fixtures/refund-baseline.md",
+      "with_skill_output": "evals/fixtures/refund-with-flowspec.md",
+      "assertions": {
+        "required_in_with_skill": [
+          "状态：Draft（草案）",
+          "### 已确认事实",
+          "### 待验证假设",
+          "### 阻塞问题",
+          "## draw.io 文件",
+          "退款金额如何计算，是否允许部分退款？",
+          "每次退款请求都有可复用的幂等标识",
+          "超时后直接重发导致重复退款",
+          "### TC-004 · 退款请求超时后查询确认成功",
+          "### TC-005 · 支付渠道调用异常转人工",
+          "## 追踪矩阵"
+        ],
+        "forbidden_in_with_skill": [
+          "7 天内可退款",
+          "七天内可退款",
+          "24 小时内到账",
+          "已验证：退款流程正确"
+        ],
+        "expected_missing_from_baseline": [
+          "### 待验证假设",
+          "### 阻塞问题",
+          "幂等标识",
+          "## 追踪矩阵"
+        ],
+        "minimum_occurrences": {
+          "### AC-": 4,
+          "### TC-": 5
+        },
+        "required_drawio_artifacts": [
+          "evals/fixtures/refund-with-flowspec.drawio"
+        ]
+      },
+      "human_notes": [
+        "需要业务、财务和支付接口负责人确认资格、金额、状态查询与对账规则。",
+        "录制夹具只证明结构回归，不能替代真实渠道的幂等和账务验证。"
+      ]
+    }
+  ]
+}

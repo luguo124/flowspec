@@ -1,0 +1,17 @@
+.DS_Store
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+.venv/
+venv/
+
+build/
+dist/
+*.egg-info/
+
+# 开发过程报告与内部审计证据，不随 skill 对外发布
+reports/

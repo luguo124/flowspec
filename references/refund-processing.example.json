@@ -1,0 +1,220 @@
+{
+  "version": "1.0",
+  "title": "退款申请与支付渠道异常处理（结构示例）",
+  "status": "draft",
+  "diagram_type": "flowchart",
+  "direction": "TD",
+  "scope": {
+    "goal": "把退款申请、审核、渠道退款和异常转人工串成可追踪流程",
+    "in_scope": ["退款申请", "资格判断", "人工审核", "支付渠道退款", "超时查询", "人工处理"],
+    "out_of_scope": ["具体退款时限", "部分退款计算", "支付渠道协议细节"]
+  },
+  "actors": [
+    {"id": "ACT-USER", "name": "用户"},
+    {"id": "ACT-ORDER", "name": "订单系统"},
+    {"id": "ACT-REVIEW", "name": "审核人员"},
+    {"id": "ACT-PAYMENT", "name": "支付渠道"}
+  ],
+  "sources": [
+    {
+      "id": "SRC-001",
+      "kind": "user_requirement",
+      "ref": "用户可以提交退款申请；审核通过后发起退款；支付渠道异常时需要进入人工处理。"
+    }
+  ],
+  "facts": [
+    {"id": "F-001", "statement": "用户可以提交退款申请", "source_ids": ["SRC-001"]},
+    {"id": "F-002", "statement": "审核通过后发起退款", "source_ids": ["SRC-001"]},
+    {"id": "F-003", "statement": "支付渠道异常需要进入人工处理", "source_ids": ["SRC-001"]}
+  ],
+  "assumptions": [
+    {
+      "id": "H-001",
+      "statement": "每次退款请求都有可复用的幂等标识",
+      "risk": "超时后的重复请求可能造成重复退款",
+      "verification": "核对订单系统与支付渠道的幂等契约",
+      "source_ids": ["SRC-001"],
+      "status": "unverified"
+    },
+    {
+      "id": "H-002",
+      "statement": "支付渠道支持按退款请求查询最终状态",
+      "risk": "无法查询时不能安全判断超时请求是否已经成功",
+      "verification": "核对支付渠道查询接口、状态集合与一致性时限",
+      "source_ids": ["SRC-001"],
+      "status": "unverified"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "question": "哪些订单状态、商品类型和申请时间满足退款资格？",
+      "blocking": true,
+      "owner": "产品/业务",
+      "source_ids": ["SRC-001"]
+    },
+    {
+      "id": "Q-002",
+      "question": "退款金额如何计算，是否允许部分退款？",
+      "blocking": true,
+      "owner": "产品/财务",
+      "source_ids": ["SRC-001"]
+    },
+    {
+      "id": "Q-003",
+      "question": "人工处理的负责人、时限和用户通知方式是什么？",
+      "blocking": false,
+      "owner": "运营/客服",
+      "source_ids": ["SRC-001"]
+    }
+  ],
+  "nodes": [
+    {"id": "N-START", "type": "start", "label": "开始：用户申请退款", "actor_id": "ACT-USER", "source_ids": ["SRC-001"]},
+    {"id": "N-SUBMIT", "type": "action", "label": "提交退款原因和订单信息", "actor_id": "ACT-USER", "source_ids": ["SRC-001"], "fact_ids": ["F-001"], "acceptance_ids": ["AC-001"]},
+    {"id": "N-ELIGIBLE", "type": "decision", "label": "是否满足退款资格？", "actor_id": "ACT-ORDER", "source_ids": ["SRC-001"], "acceptance_ids": ["AC-001"]},
+    {"id": "N-END-INELIGIBLE", "type": "end", "label": "END：不满足退款资格", "actor_id": "ACT-USER"},
+    {"id": "N-REVIEW", "type": "action", "label": "审核退款申请", "actor_id": "ACT-REVIEW", "source_ids": ["SRC-001"], "acceptance_ids": ["AC-002"]},
+    {"id": "N-APPROVED", "type": "decision", "label": "审核是否通过？", "actor_id": "ACT-REVIEW", "source_ids": ["SRC-001"], "acceptance_ids": ["AC-002"]},
+    {"id": "N-END-REJECTED", "type": "end", "label": "END：审核拒绝", "actor_id": "ACT-USER"},
+    {"id": "N-REFUND", "type": "external", "label": "向支付渠道发起退款", "actor_id": "ACT-PAYMENT", "source_ids": ["SRC-001"], "fact_ids": ["F-002"], "assumption_ids": ["H-001"], "observability": ["refund_request_id", "order_id", "amount", "channel_request_at"], "acceptance_ids": ["AC-003", "AC-004"]},
+    {"id": "N-RESULT", "type": "decision", "label": "退款结果是否成功？", "actor_id": "ACT-ORDER", "source_ids": ["SRC-001"], "acceptance_ids": ["AC-003"]},
+    {"id": "N-QUERY", "type": "external", "label": "查询渠道退款状态", "actor_id": "ACT-PAYMENT", "assumption_ids": ["H-002"], "observability": ["refund_request_id", "query_result"], "acceptance_ids": ["AC-004"]},
+    {"id": "N-QUERY-RESULT", "type": "decision", "label": "查询结果是否确认成功？", "actor_id": "ACT-ORDER", "assumption_ids": ["H-002"], "acceptance_ids": ["AC-004"]},
+    {"id": "N-RECORD-SUCCESS", "type": "action", "label": "记录退款成功并通知用户", "actor_id": "ACT-ORDER", "source_ids": ["SRC-001"], "observability": ["refund_status=success", "notified_at"], "acceptance_ids": ["AC-003", "AC-004"]},
+    {"id": "N-END-SUCCESS", "type": "end", "label": "END：退款成功", "actor_id": "ACT-USER"},
+    {"id": "N-RECORD-FAIL", "type": "action", "label": "记录渠道明确失败", "actor_id": "ACT-ORDER", "source_ids": ["SRC-001"], "observability": ["refund_status=failed", "channel_error_code"], "acceptance_ids": ["AC-003"]},
+    {"id": "N-END-FAILED", "type": "end", "label": "END：退款失败", "actor_id": "ACT-USER"},
+    {"id": "N-MANUAL", "type": "action", "label": "创建人工处理任务", "actor_id": "ACT-ORDER", "source_ids": ["SRC-001"], "fact_ids": ["F-003"], "observability": ["manual_case_id", "refund_request_id", "exception_reason"], "acceptance_ids": ["AC-004"]},
+    {"id": "N-END-MANUAL", "type": "end", "label": "END：等待人工处理", "actor_id": "ACT-USER"}
+  ],
+  "edges": [
+    {"id": "E-001", "from": "N-START", "to": "N-SUBMIT", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-002", "from": "N-SUBMIT", "to": "N-ELIGIBLE", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-003", "from": "N-ELIGIBLE", "to": "N-REVIEW", "condition": "是", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-004", "from": "N-ELIGIBLE", "to": "N-END-INELIGIBLE", "condition": "否", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-005", "from": "N-REVIEW", "to": "N-APPROVED", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-006", "from": "N-APPROVED", "to": "N-REFUND", "condition": "通过", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-007", "from": "N-APPROVED", "to": "N-END-REJECTED", "condition": "拒绝或其他结果", "kind": "normal", "is_default": true, "source_ids": ["SRC-001"]},
+    {"id": "E-008", "from": "N-REFUND", "to": "N-RESULT", "condition": "收到明确结果", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-009", "from": "N-REFUND", "to": "N-QUERY", "condition": "请求超时", "kind": "timeout", "source_ids": ["SRC-001"], "assumption_ids": ["H-001", "H-002"]},
+    {"id": "E-010", "from": "N-REFUND", "to": "N-MANUAL", "condition": "渠道调用异常", "kind": "error", "source_ids": ["SRC-001"]},
+    {"id": "E-011", "from": "N-RESULT", "to": "N-RECORD-SUCCESS", "condition": "成功", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-012", "from": "N-RESULT", "to": "N-RECORD-FAIL", "condition": "失败", "kind": "error", "source_ids": ["SRC-001"]},
+    {"id": "E-013", "from": "N-QUERY", "to": "N-QUERY-RESULT", "condition": "查询返回", "kind": "normal", "assumption_ids": ["H-002"]},
+    {"id": "E-014", "from": "N-QUERY", "to": "N-MANUAL", "condition": "查询超时", "kind": "timeout", "source_ids": ["SRC-001"]},
+    {"id": "E-015", "from": "N-QUERY", "to": "N-MANUAL", "condition": "查询异常", "kind": "error", "source_ids": ["SRC-001"]},
+    {"id": "E-016", "from": "N-QUERY-RESULT", "to": "N-RECORD-SUCCESS", "condition": "确认成功", "kind": "normal", "assumption_ids": ["H-002"]},
+    {"id": "E-017", "from": "N-QUERY-RESULT", "to": "N-MANUAL", "condition": "失败、处理中或未知", "kind": "fallback", "is_default": true, "source_ids": ["SRC-001"]},
+    {"id": "E-018", "from": "N-RECORD-SUCCESS", "to": "N-END-SUCCESS", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-019", "from": "N-RECORD-FAIL", "to": "N-END-FAILED", "kind": "normal", "source_ids": ["SRC-001"]},
+    {"id": "E-020", "from": "N-MANUAL", "to": "N-END-MANUAL", "kind": "normal", "source_ids": ["SRC-001"]}
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "node_ids": ["N-SUBMIT", "N-ELIGIBLE"],
+      "edge_ids": ["E-001", "E-002", "E-003", "E-004"],
+      "given": "用户提交退款申请",
+      "when": "订单系统判断退款资格",
+      "then": ["满足资格时进入审核", "不满足时给出明确结果"],
+      "must_not": ["在资格规则未确认前编造退款时限"],
+      "verification": "申请记录、资格判断结果和用户响应一致",
+      "priority": "required"
+    },
+    {
+      "id": "AC-002",
+      "node_ids": ["N-REVIEW", "N-APPROVED"],
+      "edge_ids": ["E-005", "E-006", "E-007"],
+      "given": "退款申请满足资格并进入审核",
+      "when": "审核人员提交决定",
+      "then": ["通过时发起渠道退款", "拒绝时结束申请并保留原因"],
+      "must_not": ["审核拒绝后仍发起退款"],
+      "verification": "审核记录、退款请求和申请状态一致",
+      "priority": "required"
+    },
+    {
+      "id": "AC-003",
+      "node_ids": ["N-REFUND", "N-RESULT", "N-RECORD-SUCCESS", "N-RECORD-FAIL"],
+      "edge_ids": ["E-008", "E-011", "E-012", "E-018", "E-019"],
+      "given": "退款审核通过",
+      "when": "支付渠道返回明确结果",
+      "then": ["成功时记录成功并通知用户", "失败时记录渠道失败信息"],
+      "must_not": ["同一退款请求重复入账", "渠道失败时标记退款成功"],
+      "verification": "订单退款记录、渠道结果、账务结果和通知记录一致",
+      "priority": "required"
+    },
+    {
+      "id": "AC-004",
+      "node_ids": ["N-REFUND", "N-QUERY", "N-QUERY-RESULT", "N-MANUAL", "N-RECORD-SUCCESS"],
+      "edge_ids": ["E-009", "E-010", "E-013", "E-014", "E-015", "E-016", "E-017", "E-020"],
+      "given": "渠道退款请求超时、调用异常或结果未知",
+      "when": "系统查询最终状态或创建人工任务",
+      "then": ["确认成功后只记录一次成功", "无法确认时进入人工处理并保留关联标识"],
+      "must_not": ["超时后直接重发导致重复退款", "结果未知时向用户宣称退款成功"],
+      "verification": "退款请求、查询记录、人工任务和最终账务状态可关联",
+      "priority": "required"
+    }
+  ],
+  "test_scenarios": [
+    {
+      "id": "TC-001",
+      "title": "审核通过且渠道退款成功",
+      "category": "happy",
+      "path": ["N-START", "N-SUBMIT", "N-ELIGIBLE", "N-REVIEW", "N-APPROVED", "N-REFUND", "N-RESULT", "N-RECORD-SUCCESS", "N-END-SUCCESS"],
+      "covers": ["AC-001", "AC-002", "AC-003"],
+      "preconditions": ["申请满足待确认的退款资格"],
+      "steps": ["提交申请", "审核通过", "支付渠道返回成功"],
+      "expected": ["退款只记录一次成功", "用户收到结果"],
+      "postconditions": ["退款状态为成功"],
+      "observability": ["refund_status=success"]
+    },
+    {
+      "id": "TC-002",
+      "title": "申请不满足退款资格",
+      "category": "edge",
+      "path": ["N-START", "N-SUBMIT", "N-ELIGIBLE", "N-END-INELIGIBLE"],
+      "covers": ["AC-001"],
+      "preconditions": ["申请不满足待确认的退款资格"],
+      "steps": ["提交申请"],
+      "expected": ["返回不满足资格的结果", "不进入审核"],
+      "postconditions": ["未发起渠道退款"],
+      "observability": ["refund_request_created=false"]
+    },
+    {
+      "id": "TC-003",
+      "title": "审核拒绝",
+      "category": "error",
+      "path": ["N-START", "N-SUBMIT", "N-ELIGIBLE", "N-REVIEW", "N-APPROVED", "N-END-REJECTED"],
+      "covers": ["AC-001", "AC-002"],
+      "preconditions": ["申请满足资格"],
+      "steps": ["提交申请", "审核拒绝"],
+      "expected": ["保存拒绝结果", "不发起渠道退款"],
+      "postconditions": ["申请结束"],
+      "observability": ["review_result=rejected"]
+    },
+    {
+      "id": "TC-004",
+      "title": "退款请求超时后查询确认成功",
+      "category": "recovery",
+      "path": ["N-START", "N-SUBMIT", "N-ELIGIBLE", "N-REVIEW", "N-APPROVED", "N-REFUND", "N-QUERY", "N-QUERY-RESULT", "N-RECORD-SUCCESS", "N-END-SUCCESS"],
+      "covers": ["AC-001", "AC-002", "AC-004"],
+      "preconditions": ["审核通过", "渠道请求超时", "渠道查询可用"],
+      "steps": ["发起退款", "按原请求标识查询", "查询确认成功"],
+      "expected": ["不重复发起退款", "只记录一次成功"],
+      "postconditions": ["退款状态为成功"],
+      "observability": ["refund_request_id", "query_result=success"]
+    },
+    {
+      "id": "TC-005",
+      "title": "支付渠道调用异常转人工",
+      "category": "recovery",
+      "path": ["N-START", "N-SUBMIT", "N-ELIGIBLE", "N-REVIEW", "N-APPROVED", "N-REFUND", "N-MANUAL", "N-END-MANUAL"],
+      "covers": ["AC-001", "AC-002", "AC-004"],
+      "preconditions": ["审核通过", "渠道调用异常"],
+      "steps": ["发起退款", "记录异常并创建人工任务"],
+      "expected": ["人工任务关联原退款请求", "不宣称退款成功"],
+      "postconditions": ["申请等待人工处理"],
+      "observability": ["manual_case_id", "exception_reason"]
+    }
+  ]
+}

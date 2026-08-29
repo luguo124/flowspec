@@ -1,0 +1,47 @@
+interface:
+  display_name: "FlowSpec"
+  short_description: "把模糊软件需求变成可编辑 draw.io 与可追踪流程规格"
+  default_prompt: "使用 $flowspec 审阅这段软件产品需求：区分事实、假设和缺口，选择合适的流程图或状态图，检查异常路径，并把节点与关键边追踪到验收标准和测试场景。图文件采用 draw.io 可直接打开编辑的原生 .drawio；只把有证据的范围标成已验证。"
+  examples:
+    - "把这段退款需求梳理成流程图，找出遗漏的异常分支"
+    - "审计这个 Mermaid 登录流程，检查状态冲突和不可达节点"
+    - "比较两版 FlowSpec，告诉我哪些验收和测试受影响"
+    - "把这份退款需求生成可用 draw.io 直接打开编辑的流程图"
+    - "只帮我美化 Mermaid 配色，不要做需求分析"
+compatibility:
+  canonical_format: "agent-skills"
+  adapter_targets:
+    - "openai"
+    - "claude"
+    - "generic"
+    - "agent-skills-compatible"
+  activation:
+    mode: "manual-or-description"
+    paths: []
+  execution:
+    context: "inline"
+    shell: "python3"
+  trust:
+    source_tier: "local"
+    business_truth_policy: "user or authoritative artifact only"
+    generated_claims: "separate structural validation from real-world verification"
+  permissions:
+    network: "not required by the skill"
+    file_read: "user-provided requirements, diagrams, logs, contracts, and related workspace context"
+    file_write: "only when the user asks to save, render, or compare artifacts"
+    subprocess: "local Python standard-library validator and renderer only"
+  degradation:
+    openai: "metadata adapter plus canonical SKILL.md"
+    claude: "canonical SKILL.md"
+    generic: "canonical SKILL.md without platform metadata"
+    agent-skills-compatible: "canonical package"
+gates:
+  scaffold:
+    - "accurate trigger and exclusion boundary"
+    - "facts, assumptions, and gaps separated"
+  production:
+    - "package validation"
+    - "trigger eval"
+    - "script unit tests"
+    - "recorded output fixture"
+    - "local discovery check"

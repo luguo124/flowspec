@@ -1,0 +1,65 @@
+{
+  "name": "flowspec",
+  "version": "0.5.0",
+  "owner": "Li",
+  "updated_at": "2026-08-29",
+  "status": "active",
+  "maturity_tier": "production",
+  "lifecycle_stage": "development",
+  "context_budget_tier": "production",
+  "review_cadence": "quarterly",
+  "intent": {
+    "job_to_be_done": "把模糊的软件产品需求转成证据分层、结构可校验、验收和测试可追踪的业务流程或状态规格。",
+    "target_users": [
+      "软件产品经理",
+      "业务分析人员",
+      "研发与测试协作团队"
+    ],
+    "inputs": [
+      "模糊需求",
+      "PRD 或会议纪要",
+      "问题复现步骤",
+      "现有 draw.io、Mermaid 或流程图",
+      "FlowSpec JSON 基线"
+    ],
+    "outputs": [
+      "事实、假设和问题清单",
+      "原生 .drawio 流程图或状态图",
+      "逻辑审计",
+      "验收标准",
+      "测试场景",
+      "追踪矩阵",
+      "变更影响报告"
+    ],
+    "exclusions": [
+      "只做 draw.io 或 Mermaid 视觉美化",
+      "系统架构图、时序图、ER 图",
+      "完整 BRD 或 PRD 写作",
+      "通用数据可视化",
+      "用结构校验冒充业务真实性"
+    ]
+  },
+  "target_platforms": [
+    "openai",
+    "claude",
+    "generic",
+    "agent-skills-compatible"
+  ],
+  "skill_ir": {
+    "schema_version": "2.0.0-skill-ir-lite",
+    "defaults_key": "maintainer"
+  },
+  "maintainer": {
+    "copyright": "Copyright (c) 李涛"
+  },
+  "release_gates": [
+    "prior_art_research",
+    "root_entrypoint_isolation",
+    "validate_skill",
+    "trigger_eval",
+    "output_fixture_eval",
+    "unit_tests",
+    "local_discovery_check",
+    "evidence_bound_claims"
+  ]
+}

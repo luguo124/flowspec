@@ -1,0 +1,4 @@
+interface:
+  display_name: "FlowSpec"
+  short_description: "把模糊软件需求变成可编辑 draw.io 与可追踪流程规格"
+  default_prompt: "使用 $flowspec 审阅这段软件产品需求：区分事实、假设和缺口，选择合适的流程图或状态图，检查异常路径，并把节点与关键边追踪到验收标准和测试场景。图文件采用 draw.io 可直接打开编辑的原生 .drawio；只把有证据的范围标成已验证。"
